@@ -3,15 +3,14 @@ const sizeOf = require('image-size');
 const moment = require('moment');
 const fs = require('bluebird').promisifyAll(require('fs-extra'));
 const path = require('path');
+const idGen = require('crypto-random-string');
 
 const config = require('./config');
 const imagePath = path.resolve(`C:/Users/${config.username}/AppData/local`, config.imageDir.replace(/%localappdata%\//, ''));
-const cachePath = './cache.json';
+const cachePath = path.resolve(__dirname, './cache.json');
 
 const cache = fs.readJsonSync(cachePath, {throws: false}) || {};
 const lastUpdate = moment(cache.lastUpdate || 0);
-
-const countMap = new Map();
 
 (async () => {
   const files = fs.readdirSync(imagePath)
@@ -39,9 +38,7 @@ const countMap = new Map();
   files
     .forEach(file => {
       const date = file.time.format('YYYY-MM-DD');
-      const id = countMap.get(date) + 1 || 1;
-      countMap.set(date, id);
-      fs.copySync(file.path, path.resolve(config.targetDir, `${date}-${id}.jpg`));
+      fs.copySync(file.path, path.resolve(config.targetDir, `${date}_${idGen(16)}.jpg`));
     });
   console.log(`${files.length} files copied.`);
 
