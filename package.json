@@ -1,0 +1,20 @@
+{
+  "name": "imager",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node ./index"
+  },
+  "bin": {
+    "imager": "index.js"
+  },
+  "author": "Megrez Zhu",
+  "license": "MIT",
+  "dependencies": {
+    "bluebird": "^3.5.0",
+    "fs-extra": "^3.0.1",
+    "image-size": "^0.5.5",
+    "moment": "^2.18.1"
+  }
+}
