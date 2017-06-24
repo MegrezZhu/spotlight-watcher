@@ -49,7 +49,7 @@ const lastUpdate = moment(history.lastUpdate || 0);
   console.log(`${copyCount} files copied.`);
 
   fs.writeJsonSync(historyPath, {
-    lastUpdate,
+    lastUpdate: moment().valueOf(),
     hashSet: Array.from(hashSet)
   });
 })()
