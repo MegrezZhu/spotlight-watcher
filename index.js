@@ -4,13 +4,15 @@ const moment = require('moment');
 const fs = require('bluebird').promisifyAll(require('fs-extra'));
 const path = require('path');
 const idGen = require('crypto-random-string');
+const crypto = require('crypto');
 
 const config = require('./config');
 const imagePath = path.resolve(`C:/Users/${config.username}/AppData/local`, config.imageDir.replace(/%localappdata%\//, ''));
-const cachePath = path.resolve(__dirname, './cache.json');
+const historyPath = path.resolve(__dirname, './history.json');
 
-const cache = fs.readJsonSync(cachePath, {throws: false}) || {};
-const lastUpdate = moment(cache.lastUpdate || 0);
+const history = fs.readJsonSync(historyPath, {throws: false}) || {};
+const hashSet = new Set(history.hashSet || []);
+const lastUpdate = moment(history.lastUpdate || 0);
 
 (async () => {
   const files = fs.readdirSync(imagePath)
@@ -35,17 +37,26 @@ const lastUpdate = moment(cache.lastUpdate || 0);
       }
     });
 
-  // files
-  //   .forEach(file => {
-  //     const date = file.time.format('YYYY-MM-DD');
-  //     fs.copySync(file.path, path.resolve(config.targetDir, `${date}_${idGen(16)}.jpg`));
-  //   });
-  await Promise.all(files.map(file => {
+  let copyCount = 0;
+  await Promise.all(files.map(async file => {
     const date = file.time.format('YYYY-MM-DD');
+    const hash = await sha1(file.path);
+    if (hashSet.has(hash)) return;
+    else hashSet.add(hash);
+    copyCount++;
     return fs.copyAsync(file.path, path.resolve(config.targetDir, `${date}_${idGen(16)}.jpg`));
   }));
-  console.log(`${files.length} files copied.`);
+  console.log(`${copyCount} files copied.`);
 
-  fs.writeJsonSync(cachePath, {lastUpdate: moment().valueOf()});
+  fs.writeJsonSync(historyPath, {
+    lastUpdate,
+    hashSet: Array.from(hashSet)
+  });
 })()
   .catch(console.error);
+
+async function sha1 (filePath) {
+  const gen = crypto.createHash('sha1');
+  gen.update(await fs.readFileAsync(filePath));
+  return gen.digest('hex');
+}
