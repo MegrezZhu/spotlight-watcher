@@ -35,11 +35,15 @@ const lastUpdate = moment(cache.lastUpdate || 0);
       }
     });
 
-  files
-    .forEach(file => {
-      const date = file.time.format('YYYY-MM-DD');
-      fs.copySync(file.path, path.resolve(config.targetDir, `${date}_${idGen(16)}.jpg`));
-    });
+  // files
+  //   .forEach(file => {
+  //     const date = file.time.format('YYYY-MM-DD');
+  //     fs.copySync(file.path, path.resolve(config.targetDir, `${date}_${idGen(16)}.jpg`));
+  //   });
+  await Promise.all(files.map(file => {
+    const date = file.time.format('YYYY-MM-DD');
+    return fs.copyAsync(file.path, path.resolve(config.targetDir, `${date}_${idGen(16)}.jpg`));
+  }));
   console.log(`${files.length} files copied.`);
 
   fs.writeJsonSync(cachePath, {lastUpdate: moment().valueOf()});
