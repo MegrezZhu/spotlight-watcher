@@ -13,6 +13,7 @@
   "license": "MIT",
   "dependencies": {
     "bluebird": "^3.5.0",
+    "commander": "^2.10.0",
     "crypto-random-string": "^1.0.0",
     "fs-extra": "^3.0.1",
     "image-size": "^0.5.5",
