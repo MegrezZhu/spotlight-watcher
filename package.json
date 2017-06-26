@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node ./index"
   },
+  "repository": "https://github.com/MegrezZhu/spotlight-watcher",
   "bin": {
     "spotlight": "index.js"
   },
