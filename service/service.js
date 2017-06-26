@@ -1,13 +1,10 @@
-const path = require('path');
 const Service = require('node-windows').Service;
 const logger = require('../src/logger');
 
+const config = require('./config');
+
 // Create a new service object
-const service = new Service({
-  name: 'WindowsSpotlight Watcher',
-  description: 'routinely copy wallpaper to windows spotlight',
-  script: path.resolve(__dirname, './run.js')
-});
+const service = new Service(config.service);
 
 // Listen for the "install" event, which indicates the
 // process is available as a service.
@@ -20,7 +17,7 @@ service.on('install', function () {
 // Listen for the "uninstall" event so we know when it's done.
 service.on('uninstall', function () {
   logger.info('Uninstall complete.');
-  logger.info('The service exists: ', service.exists);
+  logger.info('The service exists: ', service.exists ? 'yes' : 'no');
 });
 
 module.exports = service;
