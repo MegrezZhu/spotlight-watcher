@@ -2,6 +2,7 @@
 'use strict';
 
 const program = require('commander');
+const shell = require('shelljs');
 
 program
   .usage('[options] [command]')
@@ -19,6 +20,13 @@ program
   .description('uninstall Spotlight Watcher service')
   .action(() => {
     require('./service/uninstall');
+  });
+
+program
+  .command('open')
+  .description('open destination directory')
+  .action(() => {
+    shell.exec(`explorer ${require('./src/config').targetDir.replace('/', '\\')}`);
   });
 
 // TODO: add command to change config item like targetDir
