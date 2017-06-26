@@ -7,10 +7,15 @@ const assert = require('assert');
 
 const {sha1} = require('./utils');
 const config = require('./config');
-const imagePath = path.resolve(`C:/Users/${config.username}/AppData/local`, config.imageDir.replace(/%localappdata%\//, ''));
-const historyPath = path.resolve(__dirname, '../history.json');
 
 module.exports = async () => {
+  await fs.ensureFileAsync(config.settingPath);
+  const setting = (await fs.readJsonAsync(config.settingPath, {throws: false})) || {};
+  assert(setting.username, 'username required');
+  assert(setting.targetDir, 'target directory required');
+  const imagePath = path.resolve(`C:/Users/${setting.username}/AppData/local`, config.imageDir.replace(/%localappdata%\//, ''));
+  const historyPath = path.resolve(__dirname, '../history.json');
+
   const history = (await fs.readJsonAsync(historyPath, {throws: false})) || {};
   const hashSet = new Set(history.hashSet || []);
   const lastUpdate = moment(history.lastUpdate || 0);
@@ -23,6 +28,7 @@ module.exports = async () => {
   });
 
   let copyCount = 0;
+  // process each potential wallpaper
   await Promise.all(files.map(async file => {
     try {
       // check update time
@@ -41,7 +47,7 @@ module.exports = async () => {
 
       // ok, copy file to dest
       const date = file.time.format('YYYY-MM-DD');
-      await fs.copyAsync(file.path, path.resolve(config.targetDir, `${date}_${idGen(16)}.jpg`));
+      await fs.copyAsync(file.path, path.resolve(setting.targetDir, `${date}_${idGen(16)}.jpg`));
       copyCount++;
     } catch (err) {
     }

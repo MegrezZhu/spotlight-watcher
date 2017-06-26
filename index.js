@@ -3,6 +3,9 @@
 
 const program = require('commander');
 const shell = require('shelljs');
+const assert = require('assert');
+const fs = require('bluebird').promisifyAll(require('fs-extra'));
+const config = require('./src/config');
 
 program
   .usage('[options] [command]')
@@ -11,31 +14,83 @@ program
 program
   .command('install')
   .description('install Spotlight Watcher as a windows service')
-  .action(() => {
-    require('./service/install');
+  .action(async () => {
+    try {
+      await check();
+      require('./service/install');
+    } catch (err) {
+      console.error(err.message);
+    }
   });
 
 program
   .command('uninstall')
   .description('uninstall Spotlight Watcher service')
-  .action(() => {
-    require('./service/uninstall');
+  .action(async () => {
+    try {
+      await check();
+      require('./service/uninstall');
+    } catch (err) {
+      console.error(err.message);
+    }
   });
 
 program
   .command('open')
   .description('open destination directory')
-  .action(() => {
-    shell.exec(`explorer ${require('./src/config').targetDir.replace('/', '\\')}`);
+  .action(async () => {
+    try {
+      await check();
+      shell.exec(`explorer ${(await getSetting()).targetDir.replace('/', '\\')}`);
+    } catch (err) {
+      console.error(err.message);
+    }
   });
 
-// TODO: add command to change config item like targetDir
-// program
-//   .command('set [key] [value]')
-//   .description('configuration')
-//   .action(async (key, value) => {
-//     assert(key, 'key needed');
-//     assert(value, 'value needed');
-//   });
+program
+  .command('setUser [username]')
+  .description('set username to help locate the windows spotlight directory')
+  .action(async (username) => {
+    try {
+      assert(username, 'username required');
+      setValue('username', username);
+    } catch (err) {
+      console.error(err.message);
+    }
+  });
+
+program
+  .command('setTarget [absolute-target-directory]')
+  .description('set target directory to store copied wallpapers')
+  .action(async (targetDir) => {
+    try {
+      assert(targetDir, 'target required');
+      setValue('targetDir', targetDir);
+    } catch (err) {
+      console.error(err.message);
+    }
+  });
 
 program.parse(process.argv);
+
+async function setValue (key, value) {
+  await fs.ensureFileAsync(config.settingPath);
+  const setting = (await fs.readJsonAsync(config.settingPath, {throws: false})) || {};
+  setting[key] = value;
+  await fs.writeJsonAsync(config.settingPath, setting);
+}
+
+async function getSetting () {
+  await fs.ensureFileAsync(config.settingPath);
+  const setting = (await fs.readJsonAsync(config.settingPath, {throws: false})) || {};
+  assert(setting.username, 'warn: username not yet set');
+  assert(setting.targetDir, 'warn: target directory not yet set');
+  return setting;
+}
+
+async function check () {
+  await fs.ensureFileAsync(config.settingPath);
+  const setting = (await fs.readJsonAsync(config.settingPath, {throws: false})) || {};
+  assert(setting.username, 'warn: username not yet set');
+  assert(setting.targetDir, 'warn: target directory not yet set');
+}

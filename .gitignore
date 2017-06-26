@@ -1,5 +1,6 @@
 .idea/
 /history.json
+/setting.json
 node_modules/
 *.log
 daemon/
