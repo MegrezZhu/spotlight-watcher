@@ -4,6 +4,7 @@
 const program = require('commander');
 const shell = require('shelljs');
 const assert = require('assert');
+const moment = require('moment');
 const fs = require('bluebird').promisifyAll(require('fs-extra'));
 const config = require('./src/config');
 
@@ -49,6 +50,14 @@ program
 
 program
   .command('log')
+  .description('list logs for today')
+  .action(async () => {
+    // for cmd, use 'more' instruction
+    shell.exec(`more ${require('path').resolve(__dirname, 'logs', `${moment().format('YYYY-MM-DD')}.log`)}`);
+  });
+
+program
+  .command('logs')
   .description('open log directory')
   .action(async () => {
     shell.exec(`explorer ${require('path').resolve(__dirname, 'logs')}`);
