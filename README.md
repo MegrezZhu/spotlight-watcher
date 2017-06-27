@@ -11,7 +11,8 @@ It can be registered as a windows service to auto-run.
 2. install dependencies `npm i --production`
 3. link as a global tool `npm link` or `npm i -g .`
 4. set username & targetDir `spotlight setUser <username>` and `spotlight setTarget <absolute dir to store wallpapers>`
-5. enjoy!
+5. install as a service. `spotlight install` (`spotlight uninstall` to uninstall)
+6. enjoy!
 
 ## Use
 See `spotlight -h` in powershell.
