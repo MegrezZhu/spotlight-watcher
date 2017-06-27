@@ -48,6 +48,13 @@ program
   });
 
 program
+  .command('log')
+  .description('open log directory')
+  .action(async () => {
+    shell.exec(`explorer ${require('path').resolve(__dirname, 'logs')}`);
+  });
+
+program
   .command('setUser [username]')
   .description('set username to help locate the windows spotlight directory')
   .action(async (username) => {
