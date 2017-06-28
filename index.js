@@ -37,6 +37,21 @@ program
   });
 
 program
+  .command('update')
+  .description('force update')
+  .action(async () => {
+    try {
+      await check();
+      const imager = require('./src/imager');
+      const logger = require('./src/logger');
+      const result = await imager();
+      logger.info(`done. ${result} files copied.`);
+    } catch (err) {
+      console.error(err.message);
+    }
+  });
+
+program
   .command('open')
   .description('open destination directory')
   .action(async () => {
