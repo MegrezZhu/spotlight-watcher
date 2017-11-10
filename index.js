@@ -6,12 +6,72 @@ const path = require('path');
 const shell = require('shelljs');
 const assert = require('assert');
 const moment = require('moment');
-const fs = require('bluebird').promisifyAll(require('fs-extra'));
+const fs = require('fs-extra');
 const config = require('./src/config');
+const inq = require('inquirer');
+const os = require('os');
+
+const { checkSpotlightFolder } = require('./src/utils');
+
+fs.ensureFileSync(config.settingPath);
+const setting = fs.readJsonSync(config.settingPath, { throws: false }) || {};
 
 program
   .usage('[options] [command]')
-  .version('1.0.0');
+  .version(require('./package.json').version);
+
+program
+  .command('config')
+  .description('start configuration')
+  .action(async () => {
+    // prompting username to find Windows Spotlight
+    const info = await inq.prompt([
+      {
+        name: 'username',
+        message: 'user to run:',
+        default: () => setting.username || os.userInfo().username,
+        validate: async answer => {
+          const homedir = path.resolve(os.homedir(), '..', answer);
+          const imagePath = path.resolve(homedir, `AppData/local`, config.imageDir.replace(/%localappdata%\//, ''));
+          if (await checkSpotlightFolder({ username: answer, homedir })) return true;
+          else return `Path "${imagePath}" not exists! It may due to an incorrect username (${answer}) or unavailable Windows Spotlight App.`;
+        }
+      }
+    ]);
+    info.homedir = path.resolve(os.homedir(), '..', info.username);
+
+    // prompting target folder
+    while (true) {
+      let {targetDir} = await inq.prompt({
+        name: 'targetDir',
+        message: 'target folder to which wallpapers are copied:',
+        default: () => setting.targetDir || process.cwd()
+      });
+      targetDir = path.resolve(process.cwd(), targetDir);
+
+      if (await fs.pathExists(targetDir)) {
+        info.targetDir = targetDir;
+        break;
+      } else {
+        const { confirm } = await inq.prompt({
+          name: 'confirm',
+          type: 'confirm',
+          message: () => `Path "${targetDir}" does not exist, do you want to create the folder?`,
+          default: true
+        });
+        if (confirm) {
+          await fs.mkdir(targetDir);
+          info.targetDir = targetDir;
+          break;
+        } else continue;
+      }
+    }
+
+    // store setting
+    await fs.outputJson(config.settingPath, info, {
+      spaces: 2
+    });
+  });
 
 program
   .command('install')
@@ -80,38 +140,13 @@ program
     shell.exec(`explorer ${path.resolve(__dirname, 'logs')}`);
   });
 
-program
-  .command('set-target')
-  .description('set target folder to which wallpapers are copied')
-  .action(async (targetDir) => {
-    try {
-      assert(targetDir, 'target required');
-      const normalized = path.resolve(process.cwd(), targetDir);
-      // TODO: check path existency
-      setValue('targetDir', normalized);
-    } catch (err) {
-      console.error(err.message);
-    }
-  });
-
 program.parse(process.argv);
 
-async function setValue (key, value) {
-  await fs.ensureFileAsync(config.settingPath);
-  const setting = (await fs.readJsonAsync(config.settingPath, {throws: false})) || {};
-  setting[key] = value;
-  await fs.writeJsonAsync(config.settingPath, setting);
-}
-
 async function getSetting () {
-  await fs.ensureFileAsync(config.settingPath);
-  const setting = (await fs.readJsonAsync(config.settingPath, {throws: false})) || {};
-  assert(setting.targetDir, 'warn: target directory not yet set');
+  assert(setting.targetDir, 'warn: settings not detected, complete configuration first');
   return setting;
 }
 
 async function check () {
-  await fs.ensureFileAsync(config.settingPath);
-  const setting = (await fs.readJsonAsync(config.settingPath, {throws: false})) || {};
-  assert(setting.targetDir, 'warn: target directory not yet set');
+  assert(setting.targetDir, 'warn: settings not detected, complete configuration first');
 }
