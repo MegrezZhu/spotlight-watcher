@@ -2,6 +2,7 @@
 'use strict';
 
 const program = require('commander');
+const path = require('path');
 const shell = require('shelljs');
 const assert = require('assert');
 const moment = require('moment');
@@ -57,7 +58,8 @@ program
   .action(async () => {
     try {
       await check();
-      shell.exec(`explorer ${(await getSetting()).targetDir.replace('/', '\\')}`);
+      const targetDir = (await getSetting()).targetDir.replace(/\//g, '\\');
+      shell.exec(`explorer ${targetDir}`);
     } catch (err) {
       console.error(err.message);
     }
@@ -68,14 +70,14 @@ program
   .description('list logs for today')
   .action(async () => {
     // for cmd, use 'more' instruction
-    shell.exec(`more ${require('path').resolve(__dirname, 'logs', `${moment().format('YYYY-MM-DD')}.log`)}`);
+    shell.exec(`more ${path.resolve(__dirname, 'logs', `${moment().format('YYYY-MM-DD')}.log`)}`);
   });
 
 program
   .command('logs')
   .description('open log directory')
   .action(async () => {
-    shell.exec(`explorer ${require('path').resolve(__dirname, 'logs')}`);
+    shell.exec(`explorer ${path.resolve(__dirname, 'logs')}`);
   });
 
 program
@@ -91,12 +93,14 @@ program
   });
 
 program
-  .command('setTarget [absolute-target-directory]')
+  .command('setTarget')
   .description('set target directory to store copied wallpapers')
   .action(async (targetDir) => {
     try {
       assert(targetDir, 'target required');
-      setValue('targetDir', targetDir);
+      const normalized = path.resolve(process.cwd(), targetDir);
+      // TODO: check path existency
+      setValue('targetDir', normalized);
     } catch (err) {
       console.error(err.message);
     }
