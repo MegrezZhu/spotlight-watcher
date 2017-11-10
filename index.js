@@ -28,7 +28,7 @@ program
     const info = await inq.prompt([
       {
         name: 'username',
-        message: 'user to run:',
+        message: 'user:',
         default: () => setting.username || os.userInfo().username,
         validate: async answer => {
           const homedir = path.resolve(os.homedir(), '..', answer);
