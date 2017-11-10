@@ -7,13 +7,13 @@ const assert = require('assert');
 
 const {sha1} = require('./utils');
 const config = require('./config');
+const homeDir = require('os').homedir();
 
 module.exports = async () => {
   await fs.ensureFileAsync(config.settingPath);
   const setting = (await fs.readJsonAsync(config.settingPath, {throws: false})) || {};
-  assert(setting.username, 'username required');
   assert(setting.targetDir, 'target directory required');
-  const imagePath = path.resolve(`C:/Users/${setting.username}/AppData/local`, config.imageDir.replace(/%localappdata%\//, ''));
+  const imagePath = path.resolve(homeDir, `AppData/local`, config.imageDir.replace(/%localappdata%\//, ''));
   const historyPath = path.resolve(__dirname, '../history.json');
 
   const history = (await fs.readJsonAsync(historyPath, {throws: false})) || {};

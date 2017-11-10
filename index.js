@@ -81,20 +81,8 @@ program
   });
 
 program
-  .command('setUser [username]')
-  .description('set username to help locate the windows spotlight directory')
-  .action(async (username) => {
-    try {
-      assert(username, 'username required');
-      setValue('username', username);
-    } catch (err) {
-      console.error(err.message);
-    }
-  });
-
-program
-  .command('setTarget')
-  .description('set target directory to store copied wallpapers')
+  .command('set-target')
+  .description('set target folder to which wallpapers are copied')
   .action(async (targetDir) => {
     try {
       assert(targetDir, 'target required');
@@ -118,7 +106,6 @@ async function setValue (key, value) {
 async function getSetting () {
   await fs.ensureFileAsync(config.settingPath);
   const setting = (await fs.readJsonAsync(config.settingPath, {throws: false})) || {};
-  assert(setting.username, 'warn: username not yet set');
   assert(setting.targetDir, 'warn: target directory not yet set');
   return setting;
 }
@@ -126,6 +113,5 @@ async function getSetting () {
 async function check () {
   await fs.ensureFileAsync(config.settingPath);
   const setting = (await fs.readJsonAsync(config.settingPath, {throws: false})) || {};
-  assert(setting.username, 'warn: username not yet set');
   assert(setting.targetDir, 'warn: target directory not yet set');
 }
