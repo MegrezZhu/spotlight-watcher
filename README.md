@@ -7,7 +7,8 @@ It can be registered as a windows service to auto-run.
 * Windows 10 1607 (since which Windows Spotlight has been included) or greater
 
 ## Use
-1. clone this repository `git clone https://github.com/MegrezZhu/spotlight-watcher.git` and `cd ./spotlight-watcher`
+1. install using NPM `npm i -g spotlight-watcher`
+    * or just clone this repository `git clone https://github.com/MegrezZhu/spotlight-watcher.git` and `cd ./spotlight-watcher`
 2. install dependencies `npm i --production`
 3. link as a global tool `npm link` or `npm i -g .`
 4. complete configuration `spotlight config`
