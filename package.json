@@ -1,5 +1,5 @@
 {
-  "name": "imager",
+  "name": "spotlight-watcher",
   "version": "1.1.2",
   "description": "Periodically extract wallpapers from Windows Spotlight service",
   "main": "index.js",
